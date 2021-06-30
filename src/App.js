@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { Component } from 'react'
 // import './App.css'
 
@@ -10,8 +11,13 @@ export default class App extends Component {
   // }
 
   state = {
-    profiles: testData,
+    profiles: [],
   }
+  
+  addProfile = (profileData) => {
+    console.log("new profile data", profileData);
+    this.setState({ profiles: [...this.state.profiles, profileData] })
+  } 
 
   render() {
 
@@ -26,7 +32,7 @@ export default class App extends Component {
     return (
       <>
         <div className="header" style={headerStyles}>{this.props.title}</div>
-        <Form/>
+        <Form onSubmit={this.addProfile}/>
         <CardList profiles={this.state.profiles}/>
       </>
     )
@@ -42,7 +48,7 @@ export class Card extends Component {
       <div className="github-profile" style={{margin:"1rem"}}>
         <img src={profile.avatar_url} style={{width:"125px"}} alt=""></img>
         <div className="info" style={{display:"inline-block", marginLeft: 10, verticalAlign: "top", fontSize:"1.5rem" }}>
-          <div className="name" style={{fontSize: '125%', fontWeight: "bold"}} alt=">Name here...">{profile.name}</div>
+          <div className="name" style={{fontSize: '125%', fontWeight: "bold"}} alt=">Name here...">{(profile.name)?profile.name:profile.login}</div>
           <div className="company" alt="Company here...">{profile.company}</div>
         </div>
       </div>
@@ -53,7 +59,7 @@ export class Card extends Component {
 export const CardList = (props) => {
   return(
     <div>
-      {props.profiles.map((profile)=><Card key={profile.name + Date.now()} {...profile}/>)}
+      {props.profiles.map((profile)=><Card key={profile.id} {...profile}/>)}
     </div>
   )
 }
@@ -64,9 +70,11 @@ export class Form extends Component {
     username: ''
   }
 
-  handleSubmit = (event) => {
+  handleSubmit = async (event) => {
     event.preventDefault();
-    console.log(this.state.username);
+    const response = await axios.get(`https://api.github.com/users/${this.state.username}`)
+    this.props.onSubmit(response.data);
+    this.setState({username:''});
   }
 
   render() {
@@ -84,10 +92,3 @@ export class Form extends Component {
     )
   }
 }
-
-
-const testData = [
-    {name: "Dan Abramov", avatar_url: "https://avatars0.githubusercontent.com/u/810438?v=4", company: "@facebook"},
-    {name: "Sophie Alpert", avatar_url: "https://avatars2.githubusercontent.com/u/6820?v=4", company: "Humu"},
-    {name: "Sebastian Markbåge", avatar_url: "https://avatars2.githubusercontent.com/u/63648?v=4", company: "Facebook"},
-];
